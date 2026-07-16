@@ -2,14 +2,12 @@
  ******************************************************************************
  * @file           : sdi12.c
  * @brief          : SDI-12 library for STM32 microcontrollers.
- *            Built using a STM32L476RG and STM32L073RZ.
+ * 
  ******************************************************************************
  * @attention
  *
  * !! SDI-12 uses 5v logic, ensure your microcontrollers pins are 5v
  * tolerant !!
- *
- * PA9 is 5v tolerant on the STM32L073xx MCU.
  *
  ******************************************************************************
  * @currently_supports
@@ -18,7 +16,7 @@
  *  - Change address (aAb!)
  *  - Start measurement (aM!)
  *  - Send data (aD0!)
- *  - Start verification (aV!)
+ *  - Start verification (aV!) 
  ******************************************************************************
  */
 
@@ -26,13 +24,9 @@
 
 SDI12_TypeDef sdi12;
 
-// This value changes depending on the MCU.
-#if defined (STM32L083xx) || defined (STM32L073xx)
-// NUCLEO-L073RZ
-#define GPIO_AF_USART1 GPIO_AF4_USART1
-#elif defined(STM32L471xx) || defined(STM32L475xx) || defined(STM32L476xx) || defined(STM32L485xx) || defined(STM32L486xx)
-#define GPIO_AF_USART1 GPIO_AF7_USART1
-#endif
+#define SDI12_COM_Pin       GPIO_PIN_9
+#define SDI12_COM_GPIO_Port GPIOA
+#define GPIO_AF_USART1      GPIO_AF1_USART1
 
 /* Private member functions */
 static HAL_StatusTypeDef SDI12_QueryDevice(const char cmd[], const uint8_t cmd_len, char *response, const uint8_t response_len);
@@ -62,8 +56,8 @@ void SDI12_Init(UART_HandleTypeDef *huart) {
       Marking (8.3 ms)
  *
  *
- * Uses a single UART pin (TX) and cycles between TX and RX to
- * send and receive commands (respectively).
+ * Uses a single-wire for UART TX/RX, and cycles to GPIO for
+ * break and marking
  */
 static HAL_StatusTypeDef SDI12_QueryDevice(const char cmd[], const uint8_t cmd_len, char response[], const uint8_t response_len) {
 
@@ -86,12 +80,8 @@ static HAL_StatusTypeDef SDI12_QueryDevice(const char cmd[], const uint8_t cmd_l
     HAL_GPIO_Init(sdi12.Port, &GPIO_InitStruct);
     HAL_Delay(9);
 
-    HAL_StatusTypeDef res;
-
-    // Put TX on the SDI-12 data pin so a command can be sent. This seems to be
-    // the minimum amount of code required for the swap to happen.
     __HAL_UART_DISABLE(sdi12.Huart);
-    MODIFY_REG(sdi12.Huart->Instance->CR2, USART_CR2_SWAP, UART_ADVFEATURE_SWAP_DISABLE);
+    HAL_HalfDuplex_EnableTransmitter(sdi12.Huart);
     __HAL_UART_ENABLE(sdi12.Huart);
 
     // Transmit
@@ -122,7 +112,7 @@ static HAL_StatusTypeDef SDI12_ReceiveLine(char buffer[], const uint8_t max, uin
 
     // Put the SDI-12 pin into RX mode so the sensor response can be read.
     __HAL_UART_DISABLE(sdi12.Huart);
-    MODIFY_REG(sdi12.Huart->Instance->CR2, USART_CR2_SWAP, UART_ADVFEATURE_SWAP_ENABLE);
+    HAL_HalfDuplex_EnableReceiver(sdi12.Huart);
     __HAL_UART_ENABLE(sdi12.Huart);
 
     // Receive up to max chars, break on CR/LF pair.
