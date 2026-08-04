@@ -1,6 +1,6 @@
 /*
  ******************************************************************************
- * @file           : sdi12.cpp
+ * @file           : sdi12.c
  * @brief          : SDI-12 library for STM32 microcontrollers.
  * 
  ******************************************************************************
@@ -20,9 +20,7 @@
  ******************************************************************************
  */
 
-#include <sdi12.hpp>
-
-#include <cstring>
+#include <sdi12.h>
 
 SDI12_TypeDef sdi12;
 
@@ -195,7 +193,7 @@ HAL_StatusTypeDef SDI12_GetId(const char addr, char response[], uint8_t response
 HAL_StatusTypeDef SDI12_ChangeAddr(char *from_addr, char *to_addr) {
     char cmd[5] = { *from_addr, 'A', *to_addr, '!', 0x00 };
     char response[3] = { 0 };
-    HAL_StatusTypeDef result = SDI12_QueryDevice(cmd, 5, response, 3);
+    HAL_StatusTypeDef result = SDI12_QueryDevice(cmd, 4, response, 3);
     return result;
 }
 
@@ -226,8 +224,7 @@ HAL_StatusTypeDef SDI12_StartMeasurement(const char addr, SDI12_Measure_TypeDef 
         }
 
         // Convert time_buf (ttt) into uint16_t
-        uint16_t time;
-        measurement_info->Time = sscanf(time_buf, "%hd", &time);
+        sscanf(time_buf, "%hd", &(measurement_info->Time));
 
         // Number of values to expect in measurement (n)
         measurement_info->NumValues = response[4] - '0'; // char to uint8_t
@@ -296,30 +293,35 @@ HAL_StatusTypeDef SDI12_SendData(const char addr, char *data, const size_t num_m
 /**
  * Parse idenfitication of SDI12 Sensor based on SDI12 Manual
  * Section 4.4.2
+ *
+ * Function assumes that response fits parameters described in manual
  */
 void ParseSDI12Identification (const char* response, SDI12Identification* out) {
-	if (!response || std::strlen(response) < 20) return;
+	if (strlen(response) < 17 || !out) return;
 
 	out->address = response[0];
 
-	constexpr size_t MODEL_OFFSET = 11;
-	constexpr size_t MODEL_LEN = 6;
-	std::memcpy(out->model, &response[MODEL_OFFSET], MODEL_LEN);
-	out->model[MODEL_LEN] = '\0';
+	const size_t VENDOR_OFFSET = 3;
+	const size_t VENDOR_LEN = 8;
+	memset(out->vendor, 0, sizeof(out->vendor));
+	memcpy(out->vendor, &response[VENDOR_OFFSET], VENDOR_LEN);
+
+	for (int i = VENDOR_LEN - 1; i >= 0; i--) {
+		if (out->vendor[i] == ' ') out->vendor[i] = '\0';
+		else break;
+	}
+
+	const size_t MODEL_OFFSET = 11;
+	const size_t MODEL_LEN = 6;
+
+	memset(out->model, 0, sizeof(out->model));
+	memcpy(out->model, &response[MODEL_OFFSET], MODEL_LEN);
 
 	for (int i = MODEL_LEN - 1; i >= 0; i--) {
 		if (out->model[i] == ' ') out->model[i] = '\0';
 		else break;
 	}
 
-	constexpr size_t VENDOR_OFFSET = 3;
-	constexpr size_t VENDOR_LEN = 8;
-	std::memcpy(out->vendor, &response[VENDOR_OFFSET], VENDOR_LEN);
-	out->vendor[VENDOR_LEN] = '\0';
 
-	for (int i = VENDOR_LEN - 1; i >= 0; i--) {
-		if (out->vendor[i] == ' ') out->vendor[i] = '\0';
-		else break;
-	}
 
 }

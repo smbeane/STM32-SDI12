@@ -1,6 +1,6 @@
 /*
  ******************************************************************************
- * @file           : sdi12.hpp
+ * @file           : sdi12.h
  * @brief          : SDI-12 library for STM32 microcontrollers.
  *
  ******************************************************************************
@@ -20,14 +20,15 @@
  ******************************************************************************
  */
 
-#ifndef SDI12_HPP
-#define SDI12_HPP
+#ifndef SDI12_H
+#define SDI12_H
 
 #include "main.h"
 
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 
 #define MAX_RESPONSE_SIZE 75
@@ -68,4 +69,4 @@ HAL_StatusTypeDef SDI12_StartMeasurement(const char addr, SDI12_Measure_TypeDef 
 HAL_StatusTypeDef SDI12_SendData(const char addr, char *data, const size_t num_measurements, const bool is_continuous);
 void ParseSDI12Identification (const char* response, SDI12Identification* out);
 
-#endif // SDI12_HPP
+#endif // SDI12_H
