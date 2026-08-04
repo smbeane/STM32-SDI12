@@ -8,8 +8,11 @@
  ******************************************************************************
  */
 
-#include <sdi12.hpp>
 #include <sdi12_sensor.hpp>
+
+extern "C" {
+	#include <sdi12.h>
+}
 
 HAL_StatusTypeDef Sensor::makeReading(char* data) const {
 	return SDI12_SendData(this->address, data, this->numMeasurements, true);
