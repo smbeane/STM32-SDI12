@@ -29,7 +29,6 @@ SDI12_TypeDef sdi12;
 #define GPIO_AF_USART1      GPIO_AF1_USART1
 
 /* Private member functions */
-static HAL_StatusTypeDef SDI12_QueryDevice(const char cmd[], const uint8_t cmd_len, char *response, const uint8_t response_len);
 static HAL_StatusTypeDef SDI12_ReceiveLine(char buffer[], const uint8_t max, uint8_t *const count);
 
 /*
@@ -59,7 +58,7 @@ void SDI12_Init(UART_HandleTypeDef *huart) {
  * Uses a single-wire for UART TX/RX, and cycles to GPIO for
  * break and marking
  */
-static HAL_StatusTypeDef SDI12_QueryDevice(const char cmd[], const uint8_t cmd_len, char response[], const uint8_t response_len) {
+HAL_StatusTypeDef SDI12_QueryDevice(const char cmd[], const uint8_t cmd_len, char response[], const uint8_t response_len) {
 
     // Setup GPIO pin for break
     GPIO_InitTypeDef GPIO_InitStruct = { 0 };
@@ -240,15 +239,11 @@ HAL_StatusTypeDef SDI12_StartMeasurement(const char addr, SDI12_Measure_TypeDef 
  * The populated array (data) should have sufficient size to hold all values
  * returned from the sensor (approx upto 10 * 75 = 750).
  */
-HAL_StatusTypeDef SDI12_SendData(const char addr, char *data, const size_t num_measurements, const bool is_continuous) {
+HAL_StatusTypeDef SDI12_SendData(const char addr, char *data, const size_t num_measurements, const char command) {
 
     uint16_t index = 0; // Holds position in data array
     uint8_t n_values = 0; // Holds index of number of values received
 
-
-    char command;
-    if (is_continuous) 	command = 'R';
-    else 			   	command = 'D';
 
     // Loop through until all the data has been captured (matching NumValues)
     char cmd[] = { addr, command, 0, '!', 0x00 };

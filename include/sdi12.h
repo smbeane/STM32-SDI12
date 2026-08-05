@@ -28,7 +28,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <stdbool.h>
 
 
 #define MAX_RESPONSE_SIZE 75
@@ -61,12 +60,13 @@ typedef struct {
 } SDI12_Measure_TypeDef;
 
 void SDI12_Init(UART_HandleTypeDef *huart);
+HAL_StatusTypeDef SDI12_QueryDevice(const char cmd[], const uint8_t cmd_len, char *response, const uint8_t response_len);
 HAL_StatusTypeDef SDI12_AckActive(const char addr);
 void SDI12_DevicesOnBus(char *const devices);
 HAL_StatusTypeDef SDI12_GetId(const char addr, char response[], uint8_t response_len);
 HAL_StatusTypeDef SDI12_ChangeAddr(char *from_addr, char *to_addr);
 HAL_StatusTypeDef SDI12_StartMeasurement(const char addr, SDI12_Measure_TypeDef *measure_info);
-HAL_StatusTypeDef SDI12_SendData(const char addr, char *data, const size_t num_measurements, const bool is_continuous);
+HAL_StatusTypeDef SDI12_SendData(const char addr, char *data, const size_t num_measurements, const char command);
 void ParseSDI12Identification (const char* response, SDI12Identification* out);
 
 #endif // SDI12_H
