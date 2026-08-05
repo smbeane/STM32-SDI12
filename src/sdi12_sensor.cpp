@@ -15,5 +15,10 @@ extern "C" {
 }
 
 HAL_StatusTypeDef Sensor::makeReading(char* data) const {
-	return SDI12_SendData(this->address, data, this->numMeasurements, true);
+	HAL_StatusTypeDef result;
+
+	result = SDI12_SendData(this->address, data, this->numMeasurements, this->commandType);
+	strcat(data, "\r\n");
+
+	return result;
 }

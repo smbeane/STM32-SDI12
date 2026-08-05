@@ -22,9 +22,9 @@ extern "C" {
 #ifdef __cplusplus
 class Sensor {
 public:
-	Sensor(): address('0'), commandType('M'), numMeasurements(0) {}
+	Sensor(): address(' '), commandType(' '), numMeasurements(0) {}
 
-	Sensor(char addr, char cmdType, size_t num_meas)
+	Sensor(char addr, char cmdType, int num_meas)
 		: address(addr), commandType(cmdType), numMeasurements(num_meas) {}
 
 	~Sensor() = default;
@@ -33,12 +33,13 @@ public:
 
 	char getAddress() const { return address; }
 	char getCommandType() const { return commandType; }
+	int getNumMeasurements() const { return numMeasurements; }
 
 private:
 
 	char address;
 	char commandType;
-	size_t numMeasurements;
+	int numMeasurements;
 };
 
 #endif // __cplusplus
